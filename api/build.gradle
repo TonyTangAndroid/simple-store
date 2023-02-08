@@ -1,0 +1,15 @@
+plugins {
+    id 'java-library'
+}
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+dependencies {
+    implementation deps.external.findBugs
+    api deps.external.guavaAndroid
+    testImplementation deps.test.junit
+    testImplementation deps.test.truth
+}
+//apply plugin: 'com.vanniktech.maven.publish'

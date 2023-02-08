@@ -34,6 +34,7 @@ android {
 }
 
 dependencies {
+    api project(":api")
     implementation deps.external.findBugs
     implementation deps.kotlin.stdLibJdk8
     api deps.external.guavaAndroid
