@@ -32,7 +32,7 @@ def build = [
         errorProneJavac      : "com.google.errorprone:javac:9+181-r4173-1",
         errorProneCheckApi   : "com.google.errorprone:error_prone_check_api:${versions.errorProne}",
         errorProneTestHelpers: "com.google.errorprone:error_prone_test_helpers:${versions.errorProne}",
-        nullAway             : 'com.uber.nullaway:nullaway:0.8.0',
+        nullAway             : 'com.uber.nullaway:nullaway:0.10.9',
         gradlePlugins        : [
                 android   : '7.4.1',
                 kotlin    : '1.6.20',
