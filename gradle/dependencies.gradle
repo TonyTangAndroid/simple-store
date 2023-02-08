@@ -16,7 +16,7 @@
 
 def versions = [
         kotlin        : '1.4.20',
-        errorProne    : '2.4.0',
+        errorProne    : '2.18.0',
         gjf           : '1.7',
         nullawayPlugin: '1.5.0',
 ]
@@ -36,7 +36,7 @@ def build = [
         gradlePlugins        : [
                 android   : '7.4.1',
                 kotlin    : '1.6.20',
-                errorProne: '0.8',
+                errorProne: '3.0.1',
                 nullAway  : '1.5.0',
                 protobuf  : '0.8.12',
                 spotless  : '4.3.0',
