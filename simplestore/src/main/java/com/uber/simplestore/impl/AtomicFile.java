@@ -95,7 +95,6 @@ final class AtomicFile {
     } catch (FileNotFoundException e) {
       File parent = mNewName.getParentFile();
         makeParentIfAbsent(parent);
-
         try {
         return new FileOutputStream(mNewName);
       } catch (FileNotFoundException e2) {
@@ -107,7 +106,7 @@ final class AtomicFile {
     private void makeParentIfAbsent(File parent) throws IOException {
         if (!parent.exists()){
           boolean mkdirs = parent.mkdirs();
-          if (!mkdirs) {
+          if (!mkdirs&& !parent.isDirectory()) {
             throw new IOException("Failed to create directory for " + mNewName);
           }
         }
