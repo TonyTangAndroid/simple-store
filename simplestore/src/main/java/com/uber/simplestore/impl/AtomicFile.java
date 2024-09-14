@@ -91,11 +91,16 @@ final class AtomicFile {
     }
 
     try {
+//      If the file exists but is a directory rather than a regular file, does not exist but cannot be created, or cannot be opened for any other reason then a FileNotFoundException is thrown.
       return new FileOutputStream(mNewName);
     } catch (FileNotFoundException e) {
       File parent = mNewName.getParentFile();
-        makeParentIfAbsent(parent);
-        try {
+      if (!parent.exists()){
+        if (!parent.mkdirs() && !parent.isDirectory()) {
+          throw new IOException("Failed to create directory for " + mNewName);
+        }
+      }
+      try {
         return new FileOutputStream(mNewName);
       } catch (FileNotFoundException e2) {
         throw new IOException("Failed to create new file " + mNewName, e2);
@@ -103,16 +108,7 @@ final class AtomicFile {
     }
   }
 
-    private void makeParentIfAbsent(File parent) throws IOException {
-        if (!parent.exists()){
-          boolean mkdirs = parent.mkdirs();
-          if (!mkdirs&& !parent.isDirectory()) {
-            throw new IOException("Failed to create directory for " + mNewName);
-          }
-        }
-    }
-
-    /**
+  /**
    * Call when you have successfully finished writing to the stream returned by {@link
    * #startWrite()}. This will close, sync, and commit the new data. The next attempt to read the
    * atomic file will return the new file stream.
