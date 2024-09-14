@@ -16,12 +16,9 @@
 package com.uber.simplestore.impl;
 
 import android.util.Log;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
 import org.jetbrains.annotations.Nullable;
+
+import java.io.*;
 
 /*
  Forked from AOSP to return failures instead of logcatting.
@@ -45,6 +42,8 @@ import org.jetbrains.annotations.Nullable;
 final class AtomicFile {
 
   private static final String LOG_TAG = "AtomicFile";
+  private static final Object lock = new Object();
+
   private final File mBaseName;
   private final File mNewName;
   private final File mLegacyBackupName;
@@ -89,22 +88,27 @@ final class AtomicFile {
     if (mLegacyBackupName.exists()) {
       rename(mLegacyBackupName, mBaseName);
     }
-
     try {
-//      If the file exists but is a directory rather than a regular file, does not exist but cannot be created, or cannot be opened for any other reason then a FileNotFoundException is thrown.
       return new FileOutputStream(mNewName);
     } catch (FileNotFoundException e) {
-      File parent = mNewName.getParentFile();
-      if (!parent.exists()){
-        if (!parent.mkdirs() && !parent.isDirectory()) {
-          throw new IOException("Failed to create directory for " + mNewName);
+      return createParentThenRetry(e);
+    }
+  }
+
+  private FileOutputStream createParentThenRetry(FileNotFoundException originalError) throws IOException {
+    File parent = mNewName.getParentFile();
+    if (parent == null){
+        throw originalError;
+    }
+    synchronized (lock) {
+        if (!parent.exists()&&!parent.mkdirs() ){
+            throw originalError;
         }
-      }
-      try {
-        return new FileOutputStream(mNewName);
-      } catch (FileNotFoundException e2) {
-        throw new IOException("Failed to create new file " + mNewName, e2);
-      }
+    }
+    try {
+      return new FileOutputStream(mNewName);
+    } catch (FileNotFoundException e2) {
+      throw new IOException("Failed to create new file " + mNewName, e2);
     }
   }
 
