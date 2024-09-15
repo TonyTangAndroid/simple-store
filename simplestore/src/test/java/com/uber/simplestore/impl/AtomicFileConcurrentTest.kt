@@ -18,11 +18,13 @@ package com.uber.simplestore.impl
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
+import com.uber.simplestore.impl.ConcurrentTestUtil.executeConcurrent
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import java.io.File
 import java.io.FileNotFoundException
+
 
 @RunWith(RobolectricTestRunner::class)
 class AtomicFileConcurrentTest {
@@ -30,7 +32,8 @@ class AtomicFileConcurrentTest {
     @Test(expected = FileNotFoundException::class)
     fun `case 0 when parent folder is absent will trigger FileNotFoundException`() {
         //arrange
-        val targetFile = File(app().dataDir, "files/simplestore/657b3cd7-f689-451b-aca0-628de60aa234/random_key")
+        //makeParentFolder()
+        val targetFile = createTargetFile()
         //act
         val target = targetFile.outputStream()
         //assert
@@ -41,11 +44,30 @@ class AtomicFileConcurrentTest {
     fun `case 1 when parent folder is present will not trigger FileNotFoundException`() {
         //arrange
         makeParentFolder()
-        val targetFile = File(app().dataDir, "files/simplestore/657b3cd7-f689-451b-aca0-628de60aa234/random_key")
+        val targetFile = createTargetFile()
         //act
         val target = targetFile.outputStream()
         //assert
         assertThat(target).isNotNull()
+    }
+
+    @Test(expected = AssertionError::class)
+    fun `case 2 when accessed concurrently without fix it will trigger error`() {
+        val baseFile = createTargetFile()
+        val atomicFile = AtomicFile(baseFile)
+        executeConcurrent { atomicFile.createFileOutputStreamForWrite(false) }
+    }
+
+    @Test
+    fun `case 3 when accessed concurrently with fix it will not trigger error`() {
+        val baseFile = createTargetFile()
+        val atomicFile = AtomicFile(baseFile)
+        executeConcurrent { atomicFile.createFileOutputStreamForWrite(true) }
+    }
+
+
+    private fun createTargetFile(): File {
+        return File(app().dataDir, "files/simplestore/657b3cd7-f689-451b-aca0-628de60aa234/random_key")
     }
 
     private fun makeParentFolder() {
