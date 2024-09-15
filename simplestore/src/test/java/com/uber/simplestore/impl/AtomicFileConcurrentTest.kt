@@ -18,11 +18,13 @@ package com.uber.simplestore.impl
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
+import net.jodah.concurrentunit.Waiter
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import java.io.File
 import java.io.FileNotFoundException
+
 
 @RunWith(RobolectricTestRunner::class)
 class AtomicFileConcurrentTest {
@@ -56,6 +58,51 @@ class AtomicFileConcurrentTest {
         val result = atomicFile.createFileOutputStreamForWrite(false)
         //assert
         assertThat(result).isNotNull()
+    }
+
+
+    @Test
+    @Throws(Throwable::class)
+    fun testConcurrentExecution() {
+        val waiter = Waiter()
+        val threadCount = 5
+
+        for (i in 0 until threadCount) {
+            Thread {
+                try {
+                    // Simulate some work
+                    Thread.sleep((100..500).random().toLong())
+                    // Perform assertions
+                    waiter.assertTrue(true)
+                } catch (e: Exception) {
+                    waiter.fail(e)
+                } finally {
+                    // Signal that this thread is done
+                    waiter.resume()
+                }
+            }.start()
+        }
+
+        // Wait for all threads to complete
+        waiter.await(1000L * threadCount)
+    }
+
+    @Test(expected = AssertionError::class)
+    @Throws(Throwable::class)
+    fun shouldFail() {
+        val waiter = Waiter()
+
+        val thread = thread(waiter)
+        thread.start()
+        waiter.await()
+    }
+
+    private fun thread(waiter: Waiter): Thread {
+        return Thread { extracted(waiter) }
+    }
+
+    private fun extracted(waiter: Waiter) {
+        waiter.assertTrue(false)
     }
 
     private fun makeParentFolder() {

@@ -52,6 +52,7 @@ def androidx = [
 ]
 
 def test = [
+        concurrentunit      : 'net.jodah:concurrentunit:0.4.6',
         junit      : 'junit:junit:4.13.1',
         junitX     : 'androidx.test.ext:junit:1.0.0',
         truth      : 'com.google.truth:truth:1.1',
