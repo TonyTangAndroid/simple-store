@@ -1,60 +1,49 @@
 name: CI
 
-on:
-  # Only run push on main
-  push:
-    branches:
-      - main
-    paths-ignore:
-      - 'docs/**'
-      - '*.md'
-  # Always run on PRs
-  pull_request:
+on: [push, pull_request]
 
 jobs:
   build:
     name: JDK ${{ matrix.java_version }}
-    runs-on: macos-12
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./android
     strategy:
       matrix:
+        # TODO Add 9, 10, 11, 12, and 13 after Kotlin 1.3.60
         java_version: [11]
     steps:
       - name: Checkout
-        uses: actions/checkout@v4.1.7
-      - name: Install JDK ${{ matrix.java_version }}
-        uses: actions/setup-java@v4.3.0
+        uses: actions/checkout@v2
+      - name: Install JDK
+        uses: actions/setup-java@v2
         with:
-          distribution: 'temurin'
+          distribution: 'zulu'
           java-version: ${{ matrix.java_version }}
-      - name: Gradle Wrapper Validation
-        uses: gradle/wrapper-validation-action@v3.5.0
-      - name: Cache gradle packages
-        uses: actions/cache@v4.0.2
-        with:
-          path: ~/.gradle/caches
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
-          restore-keys: ${{ runner.os }}-gradle
       - name: Install Android SDK
-        uses: malinskiy/action-android/install-sdk@release/0.1.3
+        uses: malinskiy/action-android/install-sdk@release/0.1.1
+      - name: Gradle Wrapper Validation
+        uses: gradle/wrapper-validation-action@v1
       - name: Configure Gradle
+        # Gradle configuration install deps
         run: ./gradlew help
-      - name: Check formatting
+      - name: Spot check
         run: ./gradlew spotlessCheck --stacktrace
-      - name: Build project
+      - name: Build Project
         run: ./gradlew assemble --stacktrace
-      # TODO split test and instrumentation into parallel builds
-      - name: Run tests
+      - name : Testing
         run: ./gradlew test --stacktrace
-      - name: Run instrumentation tests
-        uses: malinskiy/action-android/emulator-run-cmd@release/0.1.3
+      - name: Enable KVM
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+      - name: run tests
+        uses: reactivecircus/android-emulator-runner@v2
         with:
-          cmd: ./gradlew connectedCheck --stacktrace
-          api: 30
-          tag: default
-          abi: x86_64
-      - name: Full check
+          api-level: 29
+          script:
+            ./gradlew connectedCheck
+      - name: Final Checks
         run: ./gradlew check --stacktrace
-      - uses: actions/upload-artifact@v4
-        with:
-          name: Sample App
-          path: sample/build/outputs
