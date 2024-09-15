@@ -17,7 +17,6 @@ package com.uber.simplestore.impl;
 
 import android.util.Log;
 import com.google.common.annotations.VisibleForTesting;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -109,7 +108,8 @@ final class AtomicFile {
   }
 
   @VisibleForTesting
-  FileOutputStream createFileOutputStreamForWrite(boolean fixOnFileNotFoundationException) throws IOException {
+  FileOutputStream createFileOutputStreamForWrite(boolean fixOnFileNotFoundationException)
+      throws IOException {
     try {
       return new FileOutputStream(mNewName);
     } catch (FileNotFoundException e) {
@@ -117,7 +117,8 @@ final class AtomicFile {
     }
   }
 
-  private FileOutputStream createParent(FileNotFoundException rawError, boolean fixOnFileNotFoundationException) throws IOException {
+  private FileOutputStream createParent(
+      FileNotFoundException rawError, boolean fixOnFileNotFoundationException) throws IOException {
     if (fixOnFileNotFoundationException) {
       return createParentWithFix(rawError);
     } else {
@@ -141,7 +142,6 @@ final class AtomicFile {
       throw new IOException("Failed to create new file " + mNewName, e2);
     }
   }
-
 
   /**
    * Call when you have successfully finished writing to the stream returned by {@link
