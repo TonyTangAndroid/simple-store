@@ -14,10 +14,10 @@ on:
 jobs:
   build:
     name: JDK ${{ matrix.java_version }}
-    runs-on: macos-13
+    runs-on: macos-12
     strategy:
       matrix:
-        java_version: [17]
+        java_version: [11]
     steps:
       - name: Checkout
         uses: actions/checkout@v4.1.7
@@ -35,7 +35,7 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
           restore-keys: ${{ runner.os }}-gradle
       - name: Install Android SDK
-        uses: malinskiy/action-android/install-sdk@release/0.1.7
+        uses: malinskiy/action-android/install-sdk@release/0.1.3
       - name: Configure Gradle
         run: ./gradlew help
       - name: Check formatting
@@ -46,12 +46,12 @@ jobs:
       - name: Run tests
         run: ./gradlew test --stacktrace
       - name: Run instrumentation tests
-        uses: malinskiy/action-android/emulator-run-cmd@release/0.1.7
+        uses: malinskiy/action-android/emulator-run-cmd@release/0.1.3
         with:
           cmd: ./gradlew connectedCheck --stacktrace
           api: 30
           tag: default
-          abi: x86
+          abi: x86_64
       - name: Full check
         run: ./gradlew check --stacktrace
       - uses: actions/upload-artifact@v4
