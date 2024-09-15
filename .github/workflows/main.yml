@@ -1,10 +1,10 @@
 name: CI
 
 on:
-  # Only run push on master
+  # Only run push on main
   push:
     branches:
-      - master
+      - main
     paths-ignore:
       - 'docs/**'
       - '*.md'
@@ -14,7 +14,7 @@ on:
 jobs:
   build:
     name: JDK ${{ matrix.java_version }}
-    runs-on: macOS-latest
+    runs-on: macos-12
     strategy:
       matrix:
         java_version: [11]
