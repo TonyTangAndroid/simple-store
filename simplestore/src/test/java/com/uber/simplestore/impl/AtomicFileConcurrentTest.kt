@@ -70,21 +70,21 @@ class AtomicFileConcurrentTest {
         val threadCount = 5
         for (i in 0 until threadCount) {
             Thread {
-                try {
-                    // Simulate some work
-                    run(action)
-                    // Perform assertions
-                    waiter.assertTrue(true)
-                } catch (e: Exception) {
-                    waiter.fail(e)
-                } finally {
-                    // Signal that this thread is done
-                    waiter.resume()
-                }
+                executeConcurrentInternally(action, waiter)
             }.start()
         }
         // Wait for all threads to complete
         waiter.await(1000L * threadCount)
+    }
+
+    private fun executeConcurrentInternally(action: () -> Unit, waiter: Waiter) {
+        try {
+            run(action)
+        } catch (e: Exception) {
+            waiter.fail(e)
+        } finally {
+            waiter.resume()
+        }
     }
 
 
