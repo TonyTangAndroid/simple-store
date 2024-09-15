@@ -51,20 +51,8 @@ class AtomicFileConcurrentTest {
         assertThat(target).isNotNull()
     }
 
-    @Test
-    fun `case 3 when parent folder is present will not trigger FileNotFoundException`() {
-        //arrange
-        val targetFile = File(app().dataDir, "files/simplestore/657b3cd7-f689-451b-aca0-628de60aa234/random_key")
-        val atomicFile = AtomicFile(targetFile)
-        val result = atomicFile.createFileOutputStreamForWrite(false)
-        //assert
-        assertThat(result).isNotNull()
-    }
-
-
     @Test(expected = AssertionError::class)
-    @Throws(Throwable::class)
-    fun testConcurrentExecution() {
+    fun `case 2 when accessed concurrently without fix it will trigger error`() {
         val targetFile = File(app().dataDir, "files/simplestore/657b3cd7-f689-451b-aca0-628de60aa234/random_key")
         val atomicFile = AtomicFile(targetFile)
         val waiter = Waiter()
@@ -89,7 +77,36 @@ class AtomicFileConcurrentTest {
         // Wait for all threads to complete
         waiter.await(1000L * threadCount)
     }
+    @Test
+    fun `case 3 when accessed concurrently with fix it will not trigger error`() {
+        val targetFile = File(app().dataDir, "files/simplestore/657b3cd7-f689-451b-aca0-628de60aa234/random_key")
+        val atomicFile = AtomicFile(targetFile)
+        val waiter = Waiter()
+        val threadCount = 5
 
+        for (i in 0 until threadCount) {
+            Thread {
+                try {
+                    // Simulate some work
+                    testCreate2(atomicFile)
+                    // Perform assertions
+                    waiter.assertTrue(true)
+                } catch (e: Exception) {
+                    waiter.fail(e)
+                } finally {
+                    // Signal that this thread is done
+                    waiter.resume()
+                }
+            }.start()
+        }
+
+        // Wait for all threads to complete
+        waiter.await(1000L * threadCount)
+    }
+
+    private fun testCreate2(atomicFile: AtomicFile) {
+        atomicFile.createFileOutputStreamForWrite(true  )
+    }
     private fun testCreate(atomicFile: AtomicFile) {
         atomicFile.createFileOutputStreamForWrite(false)
     }
