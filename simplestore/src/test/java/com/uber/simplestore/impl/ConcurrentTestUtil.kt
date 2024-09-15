@@ -29,6 +29,12 @@ object ConcurrentTestUtil {
      */
     private const val MAX_THREAD = 5
 
+
+    /**
+     * Executes the given action concurrently.
+     * It will trigger [Waiter.fail] if the action throws an exception during the whole concurrent execution process.
+     * It will trigger [Waiter.resume] if the action is concluded successfully for the whole concurrent execution.
+     */
     fun executeConcurrent(action: () -> Unit) {
         val waiter = Waiter()
         val threadCount = MAX_THREAD

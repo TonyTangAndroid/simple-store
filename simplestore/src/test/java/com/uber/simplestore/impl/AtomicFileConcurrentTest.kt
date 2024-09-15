@@ -18,7 +18,7 @@ package com.uber.simplestore.impl
 import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
-import net.jodah.concurrentunit.Waiter
+import com.uber.simplestore.impl.ConcurrentTestUtil.executeConcurrent
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -53,38 +53,16 @@ class AtomicFileConcurrentTest {
 
     @Test(expected = AssertionError::class)
     fun `case 2 when accessed concurrently without fix it will trigger error`() {
-        val targetFile = createTargetFile()
-        val atomicFile = AtomicFile(targetFile)
-        executeConcurrent { atomicFile.createFileOutputStreamForWrite(false ) }
+        val baseFile = createTargetFile()
+        val atomicFile = AtomicFile(baseFile)
+        executeConcurrent { atomicFile.createFileOutputStreamForWrite(false) }
     }
 
     @Test
     fun `case 3 when accessed concurrently with fix it will not trigger error`() {
-        val targetFile = createTargetFile()
-        val atomicFile = AtomicFile(targetFile)
-        executeConcurrent { atomicFile.createFileOutputStreamForWrite(true   ) }
-    }
-
-    private fun executeConcurrent(action: () -> Unit) {
-        val waiter = Waiter()
-        val threadCount = 5
-        for (i in 0 until threadCount) {
-            Thread {
-                executeConcurrentInternally(action, waiter)
-            }.start()
-        }
-        // Wait for all threads to complete
-        waiter.await(1000L * threadCount)
-    }
-
-    private fun executeConcurrentInternally(action: () -> Unit, waiter: Waiter) {
-        try {
-            run(action)
-        } catch (e: Exception) {
-            waiter.fail(e)
-        } finally {
-            waiter.resume()
-        }
+        val baseFile = createTargetFile()
+        val atomicFile = AtomicFile(baseFile)
+        executeConcurrent { atomicFile.createFileOutputStreamForWrite(true) }
     }
 
 
