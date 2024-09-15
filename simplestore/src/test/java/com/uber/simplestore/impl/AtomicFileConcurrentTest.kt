@@ -77,6 +77,7 @@ class AtomicFileConcurrentTest {
         // Wait for all threads to complete
         waiter.await(1000L * threadCount)
     }
+
     @Test
     fun `case 3 when accessed concurrently with fix it will not trigger error`() {
         val targetFile = createTargetFile()
