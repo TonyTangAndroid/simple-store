@@ -48,6 +48,16 @@ class AtomicFileConcurrentTest {
         assertThat(target).isNotNull()
     }
 
+    @Test
+    fun `case 3 when parent folder is present will not trigger FileNotFoundException`() {
+        //arrange
+        val targetFile = File(app().dataDir, "files/simplestore/657b3cd7-f689-451b-aca0-628de60aa234/random_key")
+        val atomicFile = AtomicFile(targetFile)
+        val result = atomicFile.createFileOutputStreamForWrite(false)
+        //assert
+        assertThat(result).isNotNull()
+    }
+
     private fun makeParentFolder() {
         val parent = File(app().dataDir, "files/simplestore/657b3cd7-f689-451b-aca0-628de60aa234")
         parent.mkdirs()
