@@ -33,7 +33,7 @@ class AtomicFileConcurrentTest {
     @Test(expected = FileNotFoundException::class)
     fun `case 0 when parent folder is absent will trigger FileNotFoundException`() {
         //arrange
-        val targetFile = File(app().dataDir, "files/simplestore/657b3cd7-f689-451b-aca0-628de60aa234/random_key")
+        val targetFile = createTargetFile()
         //act
         val target = targetFile.outputStream()
         //assert
@@ -44,7 +44,7 @@ class AtomicFileConcurrentTest {
     fun `case 1 when parent folder is present will not trigger FileNotFoundException`() {
         //arrange
         makeParentFolder()
-        val targetFile = File(app().dataDir, "files/simplestore/657b3cd7-f689-451b-aca0-628de60aa234/random_key")
+        val targetFile = createTargetFile()
         //act
         val target = targetFile.outputStream()
         //assert
@@ -53,7 +53,7 @@ class AtomicFileConcurrentTest {
 
     @Test(expected = AssertionError::class)
     fun `case 2 when accessed concurrently without fix it will trigger error`() {
-        val targetFile = File(app().dataDir, "files/simplestore/657b3cd7-f689-451b-aca0-628de60aa234/random_key")
+        val targetFile = createTargetFile()
         val atomicFile = AtomicFile(targetFile)
         val waiter = Waiter()
         val threadCount = 5
@@ -79,7 +79,7 @@ class AtomicFileConcurrentTest {
     }
     @Test
     fun `case 3 when accessed concurrently with fix it will not trigger error`() {
-        val targetFile = File(app().dataDir, "files/simplestore/657b3cd7-f689-451b-aca0-628de60aa234/random_key")
+        val targetFile = createTargetFile()
         val atomicFile = AtomicFile(targetFile)
         val waiter = Waiter()
         val threadCount = 5
@@ -102,6 +102,10 @@ class AtomicFileConcurrentTest {
 
         // Wait for all threads to complete
         waiter.await(1000L * threadCount)
+    }
+
+    private fun createTargetFile(): File {
+        return File(app().dataDir, "files/simplestore/657b3cd7-f689-451b-aca0-628de60aa234/random_key")
     }
 
     private fun testCreate2(atomicFile: AtomicFile) {
