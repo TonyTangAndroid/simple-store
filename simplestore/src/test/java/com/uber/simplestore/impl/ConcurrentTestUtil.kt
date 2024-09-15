@@ -17,16 +17,21 @@ package com.uber.simplestore.impl
 
 import net.jodah.concurrentunit.Waiter
 
+
 /**
  * A utility class to execute a given action concurrently.
  * It will trigger [Waiter.fail] if the action throws an exception during the whole concurrent execution process.
  * It will trigger [Waiter.resume] if the action is concluded successfully for the whole concurrent execution.
  */
 object ConcurrentTestUtil {
+    /**
+     * The maximum number of threads to be executed concurrently.
+     */
+    private const val MAX_THREAD = 5
 
     fun executeConcurrent(action: () -> Unit) {
         val waiter = Waiter()
-        val threadCount = 5
+        val threadCount = MAX_THREAD
         for (i in 0 until threadCount) {
             Thread {
                 executeConcurrentInternally(action, waiter)
