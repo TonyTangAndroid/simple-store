@@ -24,6 +24,7 @@ import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import java.io.File
 import java.io.FileNotFoundException
+import java.lang.AssertionError
 
 
 @RunWith(RobolectricTestRunner::class)
@@ -61,9 +62,11 @@ class AtomicFileConcurrentTest {
     }
 
 
-    @Test
+    @Test(expected = AssertionError::class)
     @Throws(Throwable::class)
     fun testConcurrentExecution() {
+        val targetFile = File(app().dataDir, "files/simplestore/657b3cd7-f689-451b-aca0-628de60aa234/random_key")
+        val atomicFile = AtomicFile(targetFile)
         val waiter = Waiter()
         val threadCount = 5
 
@@ -71,7 +74,7 @@ class AtomicFileConcurrentTest {
             Thread {
                 try {
                     // Simulate some work
-                    Thread.sleep((100..500).random().toLong())
+                    testCreate(atomicFile)
                     // Perform assertions
                     waiter.assertTrue(true)
                 } catch (e: Exception) {
@@ -87,22 +90,8 @@ class AtomicFileConcurrentTest {
         waiter.await(1000L * threadCount)
     }
 
-    @Test(expected = AssertionError::class)
-    @Throws(Throwable::class)
-    fun shouldFail() {
-        val waiter = Waiter()
-
-        val thread = thread(waiter)
-        thread.start()
-        waiter.await()
-    }
-
-    private fun thread(waiter: Waiter): Thread {
-        return Thread { extracted(waiter) }
-    }
-
-    private fun extracted(waiter: Waiter) {
-        waiter.assertTrue(false)
+    private fun testCreate(atomicFile: AtomicFile) {
+        atomicFile.createFileOutputStreamForWrite(false)
     }
 
     private fun makeParentFolder() {
