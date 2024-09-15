@@ -16,6 +16,7 @@
 package com.uber.simplestore.impl
 
 import net.jodah.concurrentunit.Waiter
+import java.util.concurrent.Executors
 
 
 /**
@@ -37,13 +38,15 @@ object ConcurrentTestUtil {
      */
     fun executeConcurrent(action: () -> Unit) {
         val waiter = Waiter()
-        val threadCount = MAX_THREAD
-        for (i in 0 until threadCount) {
-            Thread {
-                executeConcurrentInternally(action, waiter)
-            }.start()
+        for (i in 0 until 1000) {
+            val service = Executors.newFixedThreadPool(MAX_THREAD)
+            for (j in 0 until 10) {
+                service.submit {
+                    executeConcurrentInternally(action, waiter)
+                }
+            }
         }
-        waiter.await(1000L * threadCount)
+        waiter.await(1000L * MAX_THREAD)
     }
 
     private fun executeConcurrentInternally(action: () -> Unit, waiter: Waiter) {
