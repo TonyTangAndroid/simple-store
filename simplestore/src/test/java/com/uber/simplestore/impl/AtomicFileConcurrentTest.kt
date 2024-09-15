@@ -52,7 +52,7 @@ class AtomicFileConcurrentTest {
         assertThat(target).isNotNull()
     }
 
-    @Ignore("failing_on_ci")
+    @Ignore("This is failing due to CI flakiness. One could enable it locally to reproduce the issue.")
     @Test(expected = AssertionError::class)
     fun `case 2 when accessed concurrently without fix it will trigger error`() {
         val baseFile = createTargetFile()
