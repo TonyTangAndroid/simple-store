@@ -1,35 +1,59 @@
 name: CI
 
-on: [pull_request]
+on:
+  # Only run push on master
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - 'docs/**'
+      - '*.md'
+  # Always run on PRs
+  pull_request:
 
 jobs:
   build:
     name: JDK ${{ matrix.java_version }}
-    runs-on: ubuntu-latest
+    runs-on: macOS-latest
     strategy:
       matrix:
-        # TODO Add 9, 10, 11, 12, and 13 after Kotlin 1.3.60
         java_version: [11]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
-      - name: Install JDK
-        uses: actions/setup-java@v2
+      - name: Install JDK ${{ matrix.java_version }}
+        uses: actions/setup-java@v1
         with:
-          distribution: 'zulu'
           java-version: ${{ matrix.java_version }}
-      - name: Install Android SDK
-        uses: malinskiy/action-android/install-sdk@release/0.1.1
       - name: Gradle Wrapper Validation
         uses: gradle/wrapper-validation-action@v1
+      - name: Cache gradle packages
+        uses: actions/cache@v2
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle') }}
+          restore-keys: ${{ runner.os }}-gradle
+      - name: Install Android SDK
+        uses: malinskiy/action-android/install-sdk@release/0.1.0
       - name: Configure Gradle
-        # Gradle configuration install deps
         run: ./gradlew help
-      - name: Spot check
+      - name: Check formatting
         run: ./gradlew spotlessCheck --stacktrace
-      - name: Build Project
+      - name: Build project
         run: ./gradlew assemble --stacktrace
-      - name : Testing
+      # TODO split test and instrumentation into parallel builds
+      - name: Run tests
         run: ./gradlew test --stacktrace
-      - name: Final Checks
+      - name: Run instrumentation tests
+        uses: malinskiy/action-android/emulator-run-cmd@release/0.1.0
+        with:
+          cmd: ./gradlew connectedCheck --stacktrace
+          api: 21
+          tag: default
+          abi: x86
+      - name: Full check
         run: ./gradlew check --stacktrace
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Sample App
+          path: sample/build/outputs

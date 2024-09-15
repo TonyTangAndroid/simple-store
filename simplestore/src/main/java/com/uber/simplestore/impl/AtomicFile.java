@@ -16,7 +16,6 @@
 package com.uber.simplestore.impl;
 
 import android.util.Log;
-import com.google.common.annotations.VisibleForTesting;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -46,8 +45,6 @@ import org.jetbrains.annotations.Nullable;
 final class AtomicFile {
 
   private static final String LOG_TAG = "AtomicFile";
-  private static final Object lock = new Object();
-
   private final File mBaseName;
   private final File mNewName;
   private final File mLegacyBackupName;
@@ -92,54 +89,19 @@ final class AtomicFile {
     if (mLegacyBackupName.exists()) {
       rename(mLegacyBackupName, mBaseName);
     }
-    return createFileOutputStreamForWrite(true);
-  }
 
-  private FileOutputStream createParentLegacy(FileNotFoundException e) throws IOException {
-    File parent = mNewName.getParentFile();
-    if (!parent.mkdirs()) {
-      throw new IOException("Failed to create directory for " + mNewName);
-    }
-    try {
-      return new FileOutputStream(mNewName);
-    } catch (FileNotFoundException e2) {
-      throw new IOException("Failed to create new file " + mNewName, e2);
-    }
-  }
-
-  @VisibleForTesting
-  FileOutputStream createFileOutputStreamForWrite(boolean fixOnFileNotFoundationException)
-      throws IOException {
     try {
       return new FileOutputStream(mNewName);
     } catch (FileNotFoundException e) {
-      return createParent(e, fixOnFileNotFoundationException);
-    }
-  }
-
-  private FileOutputStream createParent(
-      FileNotFoundException rawError, boolean fixOnFileNotFoundationException) throws IOException {
-    if (fixOnFileNotFoundationException) {
-      return createParentWithFix(rawError);
-    } else {
-      return createParentLegacy(rawError);
-    }
-  }
-
-  private FileOutputStream createParentWithFix(FileNotFoundException rawError) throws IOException {
-    File parent = mNewName.getParentFile();
-    if (parent == null) {
-      throw rawError;
-    }
-    synchronized (lock) {
-      if (!parent.exists() && !parent.mkdirs()) {
-        throw rawError;
+      File parent = mNewName.getParentFile();
+      if (!parent.mkdirs()) {
+        throw new IOException("Failed to create directory for " + mNewName);
       }
-    }
-    try {
-      return new FileOutputStream(mNewName);
-    } catch (FileNotFoundException e2) {
-      throw new IOException("Failed to create new file " + mNewName, e2);
+      try {
+        return new FileOutputStream(mNewName);
+      } catch (FileNotFoundException e2) {
+        throw new IOException("Failed to create new file " + mNewName, e2);
+      }
     }
   }
 

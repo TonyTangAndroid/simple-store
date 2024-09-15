@@ -23,9 +23,6 @@ android {
 
     testOptions {
         execution 'ANDROIDX_TEST_ORCHESTRATOR'
-        unitTests {
-            includeAndroidResources = true
-        }
     }
 
     defaultConfig {
@@ -50,7 +47,6 @@ dependencies {
     testImplementation deps.test.truthX
     testImplementation deps.test.concurrentunit
     testImplementation deps.test.robolectric
-    testImplementation deps.test.rxjava2
 
     androidTestImplementation deps.test.runner
     androidTestImplementation deps.test.rules
