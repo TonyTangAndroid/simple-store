@@ -120,8 +120,7 @@ final class AtomicFile {
   private FileOutputStream createParent(
       FileNotFoundException rawError, boolean fixOnFileNotFoundationException) throws IOException {
     if (fixOnFileNotFoundationException) {
-      //Always apply legacy logic
-      return createParentLegacy(rawError);
+      return createParentWithFix(rawError);
     } else {
       return createParentLegacy(rawError);
     }

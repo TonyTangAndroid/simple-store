@@ -60,7 +60,6 @@ class AtomicFileConcurrentTest {
         executeConcurrent { atomicFile.createFileOutputStreamForWrite(false) }
     }
 
-    @Ignore("Always apply legacy")
     @Test
     fun `case 3 when accessed concurrently with fix it will not trigger error`() {
         val baseFile = createTargetFile()

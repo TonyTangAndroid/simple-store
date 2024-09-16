@@ -38,7 +38,7 @@ object ConcurrentTestUtil {
      */
     fun executeConcurrent(action: () -> Unit) {
         val waiter = Waiter()
-        for (i in 0 until 100) {
+        for (i in 0 until 1000) {
             val service = Executors.newFixedThreadPool(MAX_THREAD)
             for (j in 0 until 10) {
                 service.submit {
