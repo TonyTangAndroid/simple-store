@@ -97,7 +97,7 @@ final class AtomicFile {
 
   private FileOutputStream createParentLegacy(FileNotFoundException e) throws IOException {
     File parent = mNewName.getParentFile();
-    if (!parent.mkdirs()) {
+    if (!parent.exists()&&!parent.mkdirs()) {
       throw new IOException("Failed to create directory for " + mNewName);
     }
     try {

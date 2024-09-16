@@ -19,7 +19,7 @@ import android.app.Application
 import androidx.test.core.app.ApplicationProvider
 import com.google.common.truth.Truth.assertThat
 import com.uber.simplestore.impl.ConcurrentTestUtil.executeConcurrent
-import org.junit.Ignore
+import com.uber.simplestore.impl.ConcurrentTestUtil.executeLinear
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -52,12 +52,30 @@ class AtomicFileConcurrentTest {
         assertThat(target).isNotNull()
     }
 
-    @Ignore("This is failing due to CI flakiness. One could enable it locally to reproduce the issue.")
     @Test(expected = AssertionError::class)
     fun `case 2 when accessed concurrently without fix it will trigger error`() {
-        val baseFile = createTargetFile()
-        val atomicFile = AtomicFile(baseFile)
-        executeConcurrent { atomicFile.createFileOutputStreamForWrite(false) }
+        reproduceError(createTargetFile())
+    }
+
+
+    @Test(expected = AssertionError::class)
+    fun `case 3 when accessed linear without fix it will trigger error`() {
+        repeat(1000) {
+            executeLinear(createTargetFile())
+        }
+    }
+
+    @Test(expected = AssertionError::class)
+    fun `case 4 when accessed linear without fix it will not trigger error`() {
+        repeat(1000) {
+            executeLinear(createTargetFile())
+            executeLinear(createTargetFile2())
+        }
+    }
+
+    private fun executeLinear(file: File) {
+        val atomicFile = AtomicFile(file)
+        executeLinear { atomicFile.createFileOutputStreamForWrite(false) }
     }
 
     @Test
@@ -76,6 +94,13 @@ class AtomicFileConcurrentTest {
     }
 
     /**
+     * This represents a typical file that stores a value for a random key.
+     */
+    private fun createTargetFile2(): File {
+        return File(app().dataDir, "files/simplestore/657b3cd7-f689-451b-aca0-628de60aa234/random_key_2")
+    }
+
+    /**
      * This presents a typical simple store folder scoped with under an `uuid`.
      */
     private fun makeParentFolder() {
@@ -86,4 +111,10 @@ class AtomicFileConcurrentTest {
     private fun app(): Application {
         return ApplicationProvider.getApplicationContext()
     }
+
+    private fun reproduceError(baseFile: File) {
+        val atomicFile = AtomicFile(baseFile)
+        executeConcurrent { atomicFile.createFileOutputStreamForWrite(false) }
+    }
+
 }
