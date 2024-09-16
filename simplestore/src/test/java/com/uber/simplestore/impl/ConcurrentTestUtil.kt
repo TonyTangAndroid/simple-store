@@ -36,36 +36,20 @@ object ConcurrentTestUtil {
      * It will trigger [Waiter.fail] if the action throws an exception during the whole concurrent execution process.
      * It will trigger [Waiter.resume] if the action is concluded successfully for the whole concurrent execution.
      */
-    fun executeLinear(action: () -> Unit) {
-        val waiter = Waiter()
-        val service = Executors.newSingleThreadExecutor()
-            for (j in 0 until 1000) {
-                service.submit {
-                    executeInternally(action, waiter)
-                }
-            }
-        waiter.await(1000L * MAX_THREAD)
-    }
-
-    /**
-     * Executes the given action concurrently.
-     * It will trigger [Waiter.fail] if the action throws an exception during the whole concurrent execution process.
-     * It will trigger [Waiter.resume] if the action is concluded successfully for the whole concurrent execution.
-     */
     fun executeConcurrent(action: () -> Unit) {
         val waiter = Waiter()
         for (i in 0 until 1000) {
             val service = Executors.newFixedThreadPool(MAX_THREAD)
             for (j in 0 until 10) {
                 service.submit {
-                    executeInternally(action, waiter)
+                    executeConcurrentInternally(action, waiter)
                 }
             }
         }
         waiter.await(1000L * MAX_THREAD)
     }
 
-    private fun executeInternally(action: () -> Unit, waiter: Waiter) {
+    private fun executeConcurrentInternally(action: () -> Unit, waiter: Waiter) {
         try {
             run(action)
         } catch (e: Exception) {
