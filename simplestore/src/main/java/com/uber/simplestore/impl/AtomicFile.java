@@ -22,6 +22,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.jetbrains.annotations.Nullable;
 
 /*
@@ -131,15 +133,32 @@ final class AtomicFile {
     if (parent == null) {
       throw rawError;
     }
+
     synchronized (lock) {
-      if (!parent.exists() && !parent.mkdirs()) {
-        throw rawError;
+      if (!parent.exists()) {
+        createParentInternal(rawError, parent);
       }
     }
     try {
       return new FileOutputStream(mNewName);
     } catch (FileNotFoundException e2) {
       throw new IOException("Failed to create new file " + mNewName, e2);
+    }
+  }
+
+  private void createParentInternal(FileNotFoundException rawError, File parent)
+      throws IOException {
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+      Path parentPath = mNewName.toPath().getParent();
+      if (parentPath != null && !Files.exists(parentPath)) {
+        Files.createDirectories(parentPath);
+      } else {
+        throw rawError;
+      }
+    } else {
+      if (!parent.mkdirs()) {
+        throw rawError;
+      }
     }
   }
 
